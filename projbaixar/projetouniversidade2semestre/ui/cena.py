@@ -32,7 +32,7 @@ class Cena(QGraphicsView):
             {"item": Passageiro(160, 500, "yellow"), "embarcado": False, "posicao": 1},
             {"item": Passageiro(190, 500, "yellow"), "embarcado": False, "posicao": 2},
             {"item": Passageiro(220, 500, "yellow"), "embarcado": False, "posicao": 3},
-            {"item": Passageiro(250, 500, "purple"), "embarcado": False, "posicao": 4},
+            {"item": Passageiro(250, 500, "red"), "embarcado": False, "posicao": 4},
             {"item": Passageiro(280, 500, "yellow"), "embarcado": False, "posicao": 5},
             {"item": Passageiro(310, 500, "red"), "embarcado": False, "posicao": 6},
             {"item": Passageiro(340, 500, "red"), "embarcado": False, "posicao": 7},
@@ -46,17 +46,17 @@ class Cena(QGraphicsView):
             self.scene.addItem(passageiro["item"])
 
         self.autocarro_parado = [
-            {"item": Autocarro(50, 50, "red", self, 4, direcao_x=1, direcao_y=0)},  # Direção direita
-            {"item": Autocarro(150, 50, "blue", self, 4, direcao_x=-1, direcao_y=0)},  # Direção esquerda
-            {"item": Autocarro(250, 50, "red", self, 4, direcao_x=0, direcao_y=1)},  # Direção para baixo
-            {"item": Autocarro(250, 150, "blue", self, 4, direcao_x=0, direcao_y=-1)},  # Direção para cima
-            {"item": Autocarro(350, 50, "yellow", self, 4, direcao_x=1, direcao_y=0)},  # Direção direita
-            {"item": Autocarro(450, 50, "yellow", self, 4, direcao_x=-1, direcao_y=0)},  # Direção esquerda
-            {"item": Autocarro(50, 100, "red", self, 4, direcao_x=0, direcao_y=1)},  # Direção para baixo
-            {"item": Autocarro(150, 100, "blue", self, 4, direcao_x=0, direcao_y=-1)},  # Direção para cima
-            {"item": Autocarro(250, 100, "red", self, 4, direcao_x=1, direcao_y=0)},  # Direção direita  
-            {"item": Autocarro(350, 100, "blue", self, 4, direcao_x=-1, direcao_y=0)},  # Direção esquerda   
-            {"item": Autocarro(450, 100, "yellow", self, 4, direcao_x=0, direcao_y=1)},  # Direção para baixo
+            {"item": Autocarro(50, 50, "red", self, 4, "direita")},  # Direção direita
+            {"item": Autocarro(150, 50, "blue", self, 4, "esquerda")},  # Direção esquerda
+            {"item": Autocarro(250, 50, "red", self, 4, "cima")},  # Direção para baixo
+            {"item": Autocarro(250, 150, "blue", self, 4, "baixo")},  # Direção para cima
+            {"item": Autocarro(350, 50, "yellow", self, 4, "direita")},  # Direção direita
+            {"item": Autocarro(450, 50, "yellow", self, 4, "direita")},  # Direção esquerda
+            {"item": Autocarro(50, 100, "red", self, 4, "baixo")},  # Direção para baixo
+            {"item": Autocarro(150, 100, "blue", self, 4, "cima")},  # Direção para cima
+            {"item": Autocarro(250, 100, "red", self, 4, "direita")},  # Direção direita  
+            {"item": Autocarro(350, 100, "blue", self, 4, "esquerda")},  # Direção esquerda   
+            {"item": Autocarro(450, 100, "yellow", self, 4, "baixo")},  # Direção para baixo
         ]
 
         for autocarro in self.autocarro_parado:

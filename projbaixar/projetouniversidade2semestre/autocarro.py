@@ -7,45 +7,50 @@ import random
 from time import sleep
 
 class Autocarro(QGraphicsRectItem):
-    def __init__(self, x, y, cor, cena, capacidade, direcao_x=1, direcao_y=0):
+    def __init__(self, x, y, cor, cena, capacidade, direcao_saida):
         super().__init__(0, 0, 80, 40)  # Largura x Altura do autocarro
         self.setPos(x, y)   # Posição inicial do autocarro
         self.setBrush(QColor(cor))  # Define a cor do autocarro
         self.cor = cor # Cor do autocarro
         self.cena = cena  # Referência à cena para saber onde mover
         self.capacidade = capacidade  # Capacidade máxima de passageiros 
-        self.direcao_x = direcao_x  # Direção no eixo X
-        self.direcao_y = direcao_y  # Direção no eixo Y 
+        self.direcao_saida = direcao_saida  # Direção de saída
         self.plataforma = None  # Atributo para armazenar a plataforma ocupada
 
-    def verificar_obstaculos(self):
-        """Verifica se há um bloqueio na direção do movimento do autocarro."""
-        for autocarro in self.cena.autocarro_parado:  # Itera sobre os autocarros na cena
-            if autocarro != self:  # Ignora o próprio autocarro
-            # Verificação de bloqueio para direção X (esquerda/direita)
-                if self.direcao_x > 0:  # Direção para a direita
-                    if (self.x() + 100 > autocarro["item"].x()):
-                        return True  # Bloqueio à direita
+    def verificar_bloqueio(self):
+        for autocarro in self.cena.autocarro_parado:
+            if self != autocarro["item"]:  # Não verificar o próprio autocarro
+            # Verifica se o autocarro está na mesma coluna e abaixo
+                if self.direcao_saida == 'cima':
+                    if (self.y() + self.rect().height() >= autocarro["item"].y() and
+                        self.x() == autocarro["item"].x()):
+                        return True
+            
+            # Verifica se o autocarro está na mesma coluna e acima
+                elif self.direcao_saida == 'baixo':
+                    if (self.y() <= autocarro["item"].y() + autocarro["item"].rect().height() and
+                        self.x() == autocarro["item"].x()):
+                        return True
+            
+            # Verifica se o autocarro está na mesma linha e à direita
+                elif self.direcao_saida == 'esquerda': 
+                    if (self.x() + self.rect().width() >= autocarro["item"].x() and
+                        autocarro["item"].y() == self.y()):
+                        return True
+            
+            # Verifica se o autocarro está na mesma linha e à esquerda
+                elif self.direcao_saida == 'direita':
+                    if (self.x() <= autocarro["item"].x() + autocarro["item"].rect().width() and
+                        autocarro["item"].y() == self.y()):
+                        return True
+        return False
 
-                elif self.direcao_x < 0:  # Direção para a esquerda
-                    if (autocarro["item"].x() >= self.x() - 100):
-                        return True  # Bloqueio à esquerda
 
-            # Verificação de bloqueio para direção Y (cima/baixo)
-                elif self.direcao_y > 0:  # Direção para baixo
-                    if (self.y() + 50 >= autocarro["item"].y()):
-                        return True  # Bloqueio para baixo
-
-                elif self.direcao_y < 0:  # Direção para cima
-                    if (autocarro["item"].y() > self.y() - 50):
-                        return True  # Bloqueio para cima
-
-        return False  # Nenhum bloqueio encontrado
      
 
     def mousePressEvent(self, event):
         # Move o autocarro para cima da plataforma
-        if not self.verificar_obstaculos():
+        if not self.verificar_bloqueio():
             self.move_to_platform()
         else:
             print("Não é possível mover: há um autocarro bloqueando!")
@@ -90,6 +95,7 @@ class Autocarro(QGraphicsRectItem):
                         else:
                         # 🔴 Se o autocarro está cheio, esperar um pouco antes de partir
                             QTimer.singleShot(500, autocarro_correto.partir)  # Espera 0.5s antes de partir
+                            autocarro_correto.verificar_proximo_passageiro()
                         return  # Sai da função após embarcar um passageiro
 
 
