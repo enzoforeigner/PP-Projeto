@@ -19,6 +19,8 @@ class Autocarro(QGraphicsRectItem):
         self.seta = QGraphicsPolygonItem(self)
         self.atualizar_seta() # Atualiza a seta na inicialização
 
+        #tela azul
+
     def atualizar_seta(self):
         """Atualiza a direção da seta com base na direção do autocarro"""
         largura = self.rect().width()
