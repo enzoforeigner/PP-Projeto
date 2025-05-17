@@ -17,7 +17,7 @@ class Autocarro(QGraphicsRectItem):
         self.direcao_saida = direcao_saida  # Direção de saída
         self.plataforma = None  # Atributo para armazenar a plataforma ocupada
         self.seta = QGraphicsPolygonItem(self)
-        self.atualizar_seta()
+        self.atualizar_seta() # Atualiza a seta na inicialização
 
     def atualizar_seta(self):
         """Atualiza a direção da seta com base na direção do autocarro"""
