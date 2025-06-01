@@ -63,9 +63,10 @@ class Cena(QGraphicsView):
             self.scene.addItem(autocarro["item"])
 
     def add_tabuleiro(self):
-        # Adiciona o tabuleiro à cena
-        self.tabuleiro = Tabuleiro(600, 400)  # Largura e altura do tabuleiro
-        self.tabuleiro.add_to_scene(self.scene)    
+        self.tabuleiro = Tabuleiro("background.png")
+        self.tabuleiro.add_to_scene(self.scene)
+
+   
 
    
 
