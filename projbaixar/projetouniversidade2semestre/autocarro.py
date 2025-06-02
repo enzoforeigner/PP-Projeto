@@ -108,7 +108,7 @@ class Autocarro(QGraphicsRectItem):
                             break  # Para assim que encontrar um autocarro válido
 
                     if autocarro_correto and passageiro["posicao"] == 1:
-                        autocarro_correto.animar_passageiro(passageiro)
+                        autocarro_correto.animar_passageiro(passageiro, autocarro_correto)
                         autocarro_correto.capacidade -= 1
                         passageiro["embarcado"] = True
 
