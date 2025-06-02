@@ -3,6 +3,7 @@ from PyQt6.QtWidgets import QGraphicsRectItem, QGraphicsPolygonItem, QMessageBox
 from PyQt6.QtGui import QColor, QPolygonF, QBrush, QColor
 from PyQt6.QtCore import Qt, QTimer, QPointF, QPropertyAnimation
 from passageiro import Passageiro
+from plataforma import Plataforma
 import random
 from time import sleep
 
@@ -45,13 +46,13 @@ class Autocarro(QGraphicsRectItem):
     def verificar_bloqueio(self):
         for autocarro in self.cena.autocarro_parado:
             if self != autocarro["item"]:  # Não verificar o próprio autocarro
-            # Verifica se o autocarro está na mesma coluna e abaixo
+            # Verifica se o autocarro está na mesma coluna e acima
                 if self.direcao_saida == 'cima':
                     if (self.y() + self.rect().height() >= autocarro["item"].y() and
                         self.x() == autocarro["item"].x()):
                         return True
             
-            # Verifica se o autocarro está na mesma coluna e acima
+            # Verifica se o autocarro está na mesma coluna e abaixo
                 elif self.direcao_saida == 'baixo':
                     if (self.y() <= autocarro["item"].y() + autocarro["item"].rect().height() and
                         self.x() == autocarro["item"].x()):
@@ -81,22 +82,26 @@ class Autocarro(QGraphicsRectItem):
             print("Não é possível mover: há um autocarro bloqueando!")
 
     def move_to_platform(self):
+        plataforma_livre = False
     # Itera sobre a lista de plataformas para verificar se está ocupada
         for platform in self.cena.platforms:
             if not platform["ocupada"]:
+                plataforma_livre = True
             # Move o autocarro para a posição da plataforma
-                platform_y = 400  # Altura das plataforma
-                platform_x = platform["item"].x()  # Posição x da plataforma
-                self.setPos(platform_x, platform_y - self.rect().height())  # Move o autocarro acima da plataforma
                 platform["ocupada"] = True  # Marca a plataforma como ocupada
                 self.plataforma = platform  # Armazena a referência da plataforma ocupada
                 self.cena.autocarros_estacionados.append(self)  # Adiciona o autocarro à lista de autocarros estacionados
-                self.embarcar_passageiro()  # Embarca um passageiro
+                platform["item"].animar_autocarro(self)  # Anima o autocarro até a plataforma             
                 break
+        
+        if not plataforma_livre:
+        # Sem plataformas livres, verifica derrota
+            self.verificar_derrota()
     
     
 
     def embarcar_passageiro(self):
+        self.verificar_derrota()
         if self.capacidade > 0 and self.cena.passageiros:
             for passageiro in list(self.cena.passageiros):  # Evita erro ao remover da lista
                 if not passageiro["embarcado"]: 
@@ -108,19 +113,21 @@ class Autocarro(QGraphicsRectItem):
                             break  # Para assim que encontrar um autocarro válido
 
                     if autocarro_correto and passageiro["posicao"] == 1:
-                        autocarro_correto.animar_passageiro(passageiro, autocarro_correto)
+                        autocarro_correto.animar_passageiro(passageiro)  # Anima o passageiro até a seta do autocarro
                         autocarro_correto.capacidade -= 1
-                        passageiro["embarcado"] = True
+                        passageiro["embarcado"] = True  
 
-                        self.atualizar_posicoes()
+                        self.atualizar_posicoes()                        
                         self.verificar_vitoria()
+                        self.cena.gerar_passageiro()
 
-                    # 🔴 Se ainda há capacidade, verifica o próximo passageiro
+                                            # 🔴 Se ainda há capacidade, verifica o próximo passageiro
                         if autocarro_correto.capacidade > 0:
                             autocarro_correto.verificar_proximo_passageiro()
                         else:
                         # 🔴 Se o autocarro está cheio, esperar um pouco antes de partir
                             QTimer.singleShot(500, autocarro_correto.partir)  # Espera 0.5s antes de partir
+                            
                             autocarro_correto.verificar_proximo_passageiro()
                         return  # Sai da função após embarcar um passageiro
 
@@ -140,28 +147,34 @@ class Autocarro(QGraphicsRectItem):
                         
     def partir(self):
         """Remove o autocarro e os passageiros embarcados da cena."""
-      
-    # Agora, remove o autocarro da cena se ele ainda estiver lá
+
+    # 🔴 Remove passageiros embarcados
+        for passageiro in list(self.cena.passageiros):  # Cópia da lista para evitar conflitos
+            if passageiro.get("embarcado"):
+                item = passageiro["item"]
+                if item.scene() is not None:
+                    self.cena.scene.removeItem(item)
+                self.cena.passageiros.remove(passageiro)  # Remove da lista principal
+
+    # 🔴 Remove o autocarro da lista de estacionados
         if self in self.cena.autocarros_estacionados:
             self.cena.autocarros_estacionados.remove(self)
 
-        if self.plataforma:  # Verifica se o autocarro está estacionado em alguma plataforma
-            self.plataforma["ocupada"] = False  # Libera a plataforma
+    # 🔴 Libera a plataforma
+        if self.plataforma:
+            self.plataforma["ocupada"] = False
 
-        if self.scene() is not None:  # Verifica se o autocarro ainda está na cena
-            self.cena.scene.removeItem(self)  
+    # 🔴 Remove o autocarro da cena
+        if self.scene() is not None:
+            self.cena.scene.removeItem(self)
 
     
-    def gerar_passageiro(self):
-        cores = ["yellow", "blue", "red", "purple"] # Cores disponíveis para os passageiros
-        nova_cor = random.choice(cores) # Escolhe uma cor aleatória
-        novo_passageiro = {"item": Passageiro(160, 500, nova_cor), "embarcado": False} # Cria um novo passageiro
-        self.cena.passageiros.append(novo_passageiro) # Adiciona o passageiro à lista de passageiros
-        self.cena.scene.addItem(novo_passageiro["item"])  # Adiciona o passageiro à cena
-        self.embarcar_passageiro()
 
-    def animar_passageiro(self, passageiro, destino):
+        
+
+    def animar_passageiro(self, passageiro):
         passageiro_item = passageiro["item"]
+        destino = QPointF(self.x(), self.y())  # Posição do autocarro
         
 
     # Criamos um timer para animar o passageiro
@@ -183,35 +196,55 @@ class Autocarro(QGraphicsRectItem):
             if abs(nova_posicao.x() - destino.x()) < 2 and abs(nova_posicao.y() - destino.y()) < 2:
                 passageiro_item.setPos(destino)  # Garante que fique exatamente no destino
                 timer.stop()  # Para a animação
+                
 
     # Conecta o timer à função de movimento e inicia
         timer.timeout.connect(mover)
         timer.start(20)  # Atualiza a posição a cada 20ms para suavizar o movimento
 
+    
+
+
+
 
     def atualizar_posicoes(self):
-        passageiros_restantes = []  # Nova lista para armazenar os passageiros que ainda não embarcaram
-
         for passageiro in self.cena.passageiros:
             if not passageiro["embarcado"]:  
-                passageiro["posicao"] -= 1  # Atualiza posição
-                passageiros_restantes.append(passageiro)  # Mantém apenas os não embarcados
-            else:
-                 if passageiro["item"].scene() is not None:  # Verifica se ainda está na cena
-                    self.cena.scene.removeItem(passageiro["item"])  # Remove o passageiro da cena
-                
+                passageiro["posicao"] -= 1  # Atualiza posição´
+                if passageiro["posicao"] >= 1:
+                    pos_atual = passageiro["item"].pos()
+                    novo_x = pos_atual.x() - 30  # ou +30 se quiser mover para a direita
+                    novo_y = pos_atual.y()       # mantém o mesmo Y
+                    passageiro["item"].setPos(novo_x, novo_y)
 
-        # Atualiza a lista de passageiros removendo os já embarcados
-            self.cena.passageiros = passageiros_restantes
+                    
+                
         
                 
 
     def verificar_vitoria(self):
-        """Exibe uma mensagem de vitória se todos os passageiros forem transportados."""
-        if not self.cena.passageiros:  # Se não houver mais passageiros na cena
+        """Exibe uma mensagem de vitória se todos os autocarros tiverem partido."""
+    # Verifica se todos os autocarros já partiram
+        todos_autocarros_partiram = len(self.cena.autocarros_estacionados) == 0
+
+        if todos_autocarros_partiram:
             msg = QMessageBox()
-            msg.setIcon(QMessageBox.Icon.Information)  # Correto para PyQt6
+            msg.setIcon(QMessageBox.Icon.Information)
             msg.setWindowTitle("Vitória!")
-            msg.setText("Parabéns! Todos os passageiros foram transportados!")
-            msg.setStandardButtons(QMessageBox.StandardButton.Ok)  # PyQt6 requer StandardButton
-            msg.exec()  # PyQt6 usa exec(), não exec_()            
+            msg.setText("Parabéns! Todos os autocarros completaram sua missão!")
+            msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+            msg.exec()
+
+    def verificar_derrota(self):
+        """Exibe uma mensagem de derrota se todas as plataformas estiverem ocupadas."""
+    # Verifica se todas as plataformas estão ocupadas
+        todas_ocupadas = all(platform["ocupada"] for platform in self.cena.platforms)
+
+        if todas_ocupadas:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Icon.Warning)
+            msg.setWindowTitle("Derrota!")
+            msg.setText("Todas as plataformas estão ocupadas! Você perdeu!")
+            msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+            msg.exec()
+
