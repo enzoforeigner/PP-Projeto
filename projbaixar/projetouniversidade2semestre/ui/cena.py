@@ -15,6 +15,9 @@ class Cena(QGraphicsView):
 
         self.add_tabuleiro()
 
+        self.max_por_cor = 12
+        self.contagem_cores = {"yellow": 0, "blue": 0, "red": 0}
+
         self.autocarros_estacionados = []
         
          # Criando plataformas na parte superior do tabuleiro
@@ -47,15 +50,15 @@ class Cena(QGraphicsView):
 
         self.autocarro_parado = [
             {"item": Autocarro(50, 50, "red", self, 4, "direita")},  # Direção direita
-            {"item": Autocarro(150, 50, "blue", self, 4, "esquerda")},  # Direção esquerda
+            {"item": Autocarro(150, 50, "blue", self, 4, "cima")},  # Direção esquerda
             {"item": Autocarro(250, 50, "red", self, 4, "cima")},  # Direção para baixo
             {"item": Autocarro(250, 150, "blue", self, 4, "baixo")},  # Direção para cima
             {"item": Autocarro(350, 50, "yellow", self, 4, "direita")},  # Direção direita
             {"item": Autocarro(450, 50, "yellow", self, 4, "direita")},  # Direção esquerda
-            {"item": Autocarro(50, 100, "red", self, 4, "baixo")},  # Direção para baixo
-            {"item": Autocarro(150, 100, "blue", self, 4, "cima")},  # Direção para cima
+            {"item": Autocarro(60, 100, "red", self, 4, "baixo")},  # Direção para baixo
+            {"item": Autocarro(150, 100, "blue", self, 4, "baixo")},  # Direção para cima
             {"item": Autocarro(250, 100, "red", self, 4, "direita")},  # Direção direita  
-            {"item": Autocarro(350, 100, "blue", self, 4, "esquerda")},  # Direção esquerda   
+            {"item": Autocarro(350, 100, "blue", self, 4, "baixo")},  # Direção esquerda   
             {"item": Autocarro(450, 100, "yellow", self, 4, "baixo")},  # Direção para baixo
         ]
 
@@ -67,6 +70,31 @@ class Cena(QGraphicsView):
         self.tabuleiro = Tabuleiro(600, 400)  # Largura e altura do tabuleiro
         self.tabuleiro.add_to_scene(self.scene)    
 
-   
 
-#Só falta os autocarros saírem em direção
+    def gerar_passageiro(self):
+    # Filtra cores que ainda podem ter passageiro gerado (menos que max_por_cor)
+        cores_disponiveis = [cor for cor, qtd in self.contagem_cores.items() if qtd < self.max_por_cor]
+
+        if not cores_disponiveis:
+            print("Limite máximo de passageiros atingido!")
+            return  # Não gera mais passageiros
+
+    # Escolhe aleatoriamente uma cor dentre as disponíveis
+        nova_cor = random.choice(cores_disponiveis)
+
+    # Cria o passageiro dessa cor
+        novo_passageiro = {
+            "item": Passageiro(460, 500, nova_cor),
+            "embarcado": False,
+            "posicao": 11
+        }
+
+    # Atualiza a contagem da cor gerada
+        self.contagem_cores[nova_cor] += 1
+
+    # Adiciona o passageiro à lista e à cena
+        self.passageiros.append(novo_passageiro)
+        self.scene.addItem(novo_passageiro["item"])
+
+       
+
