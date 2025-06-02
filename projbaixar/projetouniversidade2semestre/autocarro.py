@@ -151,11 +151,6 @@ class Autocarro(QGraphicsRectItem):
         if self.scene() is not None:  # Verifica se o autocarro ainda está na cena
             self.cena.scene.removeItem(self)  
 
-
-
-       
-
-
     
     def gerar_passageiro(self):
         cores = ["yellow", "blue", "red", "purple"] # Cores disponíveis para os passageiros
@@ -165,9 +160,9 @@ class Autocarro(QGraphicsRectItem):
         self.cena.scene.addItem(novo_passageiro["item"])  # Adiciona o passageiro à cena
         self.embarcar_passageiro()
 
-    def animar_passageiro(self, passageiro):
+    def animar_passageiro(self, passageiro, destino):
         passageiro_item = passageiro["item"]
-        destino = QPointF(self.x(), self.y())  # Posição do autocarro
+        
 
     # Criamos um timer para animar o passageiro
         timer = QTimer()
@@ -187,7 +182,6 @@ class Autocarro(QGraphicsRectItem):
         # Verifica se o passageiro chegou ao destino (margem de erro < 2 pixels)
             if abs(nova_posicao.x() - destino.x()) < 2 and abs(nova_posicao.y() - destino.y()) < 2:
                 passageiro_item.setPos(destino)  # Garante que fique exatamente no destino
-                passageiro["embarcado"] = True
                 timer.stop()  # Para a animação
 
     # Conecta o timer à função de movimento e inicia
