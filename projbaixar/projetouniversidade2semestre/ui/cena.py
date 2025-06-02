@@ -45,19 +45,28 @@ class Cena(QGraphicsView):
         for passageiro in self.passageiros:
             self.scene.addItem(passageiro["item"])
 
-        self.autocarro_parado = [
-            {"item": Autocarro(50, 50, "red", self, 4, "direita")},  # Direção direita
-            {"item": Autocarro(150, 50, "blue", self, 4, "esquerda")},  # Direção esquerda
-            {"item": Autocarro(250, 50, "red", self, 4, "cima")},  # Direção para baixo
-            {"item": Autocarro(250, 150, "blue", self, 4, "baixo")},  # Direção para cima
-            {"item": Autocarro(350, 50, "yellow", self, 4, "direita")},  # Direção direita
-            {"item": Autocarro(450, 50, "yellow", self, 4, "direita")},  # Direção esquerda
-            {"item": Autocarro(50, 100, "red", self, 4, "baixo")},  # Direção para baixo
-            {"item": Autocarro(150, 100, "blue", self, 4, "cima")},  # Direção para cima
-            {"item": Autocarro(250, 100, "red", self, 4, "direita")},  # Direção direita  
-            {"item": Autocarro(350, 100, "blue", self, 4, "esquerda")},  # Direção esquerda   
-            {"item": Autocarro(450, 100, "yellow", self, 4, "baixo")},  # Direção para baixo
-        ]
+        cores = ["red", "blue", "yellow", "green", "purple", "orange"]
+        angulos = [45, 135, 225, 315]
+
+        self.autocarro_parado = []
+
+        x0 = 180  # posição inicial X
+        y0 = 250  # posição inicial Y
+        colunas = 5
+        linhas = 5
+        espaco_x = 70
+        espaco_y = 40
+
+        for linha in range(linhas):
+            for coluna in range(colunas):
+                x = x0 + coluna * espaco_x
+                y = y0 + linha * espaco_y + coluna * 10  # diagonal
+                cor = random.choice(cores)
+                angulo = random.choice(angulos)
+                self.autocarro_parado.append({
+                    "item": Autocarro(x, y, cor, self, 4, angulo)
+                })
+
 
         for autocarro in self.autocarro_parado:
             self.scene.addItem(autocarro["item"])
