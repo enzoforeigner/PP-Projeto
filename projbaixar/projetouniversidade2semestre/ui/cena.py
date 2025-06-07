@@ -1,4 +1,3 @@
-# cena.py
 from PyQt6.QtWidgets import QGraphicsView, QGraphicsScene
 from autocarro import Autocarro
 from passageiro import Passageiro
@@ -9,74 +8,56 @@ import random
 class Cena(QGraphicsView):
     def __init__(self):
         super().__init__()
+
+        self.grid = [[None for _ in range(4)] for _ in range(4)]
+        self.grid_posicoes = {}
+
         self.scene = QGraphicsScene(self)
         self.setScene(self.scene)
         self.setGeometry(100, 100, 800, 600)
-
         self.add_tabuleiro()
 
         self.autocarros_estacionados = []
-        
-         # Criando plataformas na parte superior do tabuleiro
+
+
+        # Quatro plataformas no topo
         self.platforms = [
-            {"item": Plataforma(50, 400, 100, 20, "lightblue", 1), "ocupada": False},
-            {"item": Plataforma(200, 400, 100, 20, "lightblue", 2), "ocupada": False},
-            {"item": Plataforma(350, 400, 100, 20, "lightblue", 3), "ocupada": False},
-            {"item": Plataforma(500, 400, 100, 20, "lightblue", 4), "ocupada": False},
+            {"item": Plataforma(100, 150, 80, 20, "lightblue", 1), "ocupada": False},
+            {"item": Plataforma(200, 150, 80, 20, "lightblue", 2), "ocupada": False},
+            {"item": Plataforma(300, 150, 80, 20, "lightblue", 3), "ocupada": False},
+            {"item": Plataforma(400, 150, 80, 20, "lightblue", 4), "ocupada": False},
         ]
 
-        for platform in self.platforms:
-            self.scene.addItem(platform["item"])
 
-        self.passageiros = [
-            {"item": Passageiro(160, 500, "yellow"), "embarcado": False, "posicao": 1},
-            {"item": Passageiro(190, 500, "yellow"), "embarcado": False, "posicao": 2},
-            {"item": Passageiro(220, 500, "yellow"), "embarcado": False, "posicao": 3},
-            {"item": Passageiro(250, 500, "red"), "embarcado": False, "posicao": 4},
-            {"item": Passageiro(280, 500, "yellow"), "embarcado": False, "posicao": 5},
-            {"item": Passageiro(310, 500, "red"), "embarcado": False, "posicao": 6},
-            {"item": Passageiro(340, 500, "red"), "embarcado": False, "posicao": 7},
-            {"item": Passageiro(370, 500, "red"), "embarcado": False, "posicao": 8},
-            {"item": Passageiro(400, 500, "red"), "embarcado": False, "posicao": 9},
-            {"item": Passageiro(430, 500, "blue"), "embarcado": False, "posicao": 10},
-            {"item": Passageiro(460, 500, "yellow"), "embarcado": False, "posicao": 11},
-        ]
+        for p in self.platforms:
+            self.scene.addItem(p["item"])
 
-        for passageiro in self.passageiros:
-            self.scene.addItem(passageiro["item"])
-
-        cores = ["red", "blue", "yellow", "green", "purple", "orange"]
-        angulos = [45, 135, 225, 315]
+        self.passageiros = []
+        cores = ["red", "blue", "yellow", "green"]
+        for i in range(8):
+            cor = random.choice(cores)
+            p = {"item": Passageiro(160 + i * 30, 100, cor), "embarcado": False}
+            self.passageiros.append(p)
+            self.scene.addItem(p["item"])
 
         self.autocarro_parado = []
+        angulos = [45, 135, 225, 315]
+        x0, y0 = 120, 480
+        espaco_x, espaco_y = 90, 70
 
-        x0 = 180  # posição inicial X
-        y0 = 250  # posição inicial Y
-        colunas = 5
-        linhas = 5
-        espaco_x = 70
-        espaco_y = 40
-
-        for linha in range(linhas):
-            for coluna in range(colunas):
-                x = x0 + coluna * espaco_x
-                y = y0 + linha * espaco_y + coluna * 10  # diagonal
-                cor = random.choice(cores)
-                angulo = random.choice(angulos)
-                self.autocarro_parado.append({
-                    "item": Autocarro(x, y, cor, self, 4, angulo)
-                })
-
-
-        for autocarro in self.autocarro_parado:
-            self.scene.addItem(autocarro["item"])
+        for linha in range(4):
+            for coluna in range(4):
+                if self.grid[linha][coluna] is None:
+                    x = x0 + coluna * espaco_x
+                    y = y0 + linha * espaco_y + coluna * 10
+                    cor = random.choice(cores)
+                    angulo = random.choice(angulos)
+                    carro = Autocarro(x, y, cor, self, 4, angulo)
+                    self.grid[linha][coluna] = carro
+                    self.grid_posicoes[carro] = (linha, coluna)
+                    self.autocarro_parado.append({"item": carro})
+                    self.scene.addItem(carro)
 
     def add_tabuleiro(self):
         self.tabuleiro = Tabuleiro("background.png")
         self.tabuleiro.add_to_scene(self.scene)
-
-   
-
-   
-
-#Só falta os autocarros saírem em direção
