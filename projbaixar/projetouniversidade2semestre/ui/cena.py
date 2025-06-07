@@ -20,17 +20,26 @@ class Cena(QGraphicsView):
         self.autocarros_estacionados = []
 
 
-        # Quatro plataformas no topo
-        self.platforms = [
-            {"item": Plataforma(100, 150, 80, 20, "lightblue", 1), "ocupada": False},
-            {"item": Plataforma(200, 150, 80, 20, "lightblue", 2), "ocupada": False},
-            {"item": Plataforma(300, 150, 80, 20, "lightblue", 3), "ocupada": False},
-            {"item": Plataforma(400, 150, 80, 20, "lightblue", 4), "ocupada": False},
+                        # Coordenadas ajustadas para alinhar com os 4 slots cinza no topo
+        slots = [
+            (70, 250),  # Slot 1 (mais à esquerda)
+            (160, 250),  # Slot 2
+            (250, 250),  # Slot 3
+            (340, 250),  # Slot 4 (mais à direita)
         ]
 
+        largura_slot = 60
+        altura_slot = 100  # ou 90 se quiser mais justo
 
-        for p in self.platforms:
-            self.scene.addItem(p["item"])
+        self.platforms = []
+        for i, (x, y) in enumerate(slots):
+            plataforma = Plataforma(x, y, largura_slot, altura_slot, "transparent", i)
+            self.scene.addItem(plataforma)
+            self.platforms.append({
+                "item": plataforma,
+                "ocupada": False,
+                "posicao": i
+            })
 
         self.passageiros = []
         cores = ["red", "blue", "yellow", "green"]

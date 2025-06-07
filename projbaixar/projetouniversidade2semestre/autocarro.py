@@ -89,6 +89,9 @@ class Autocarro(QGraphicsPixmapItem):
         for plataforma in self.cena.platforms:
             if not plataforma["ocupada"]:
                 self.setPos(plataforma["item"].x(), plataforma["item"].y())
+
+                self.setRotation(335)  # <- Esta linha faz o alinhamento com o slot
+
                 plataforma["ocupada"] = True
                 self.plataforma = plataforma
                 self.cena.autocarros_estacionados.append(self)
@@ -100,6 +103,7 @@ class Autocarro(QGraphicsPixmapItem):
 
                 QTimer.singleShot(200, self.embarcar_passageiros)
                 return
+
 
     def embarcar_passageiros(self):
         if self.capacidade <= 0:
