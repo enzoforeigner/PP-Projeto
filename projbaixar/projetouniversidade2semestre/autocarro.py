@@ -4,6 +4,7 @@ from PyQt6.QtGui import QColor, QPolygonF, QBrush, QColor
 from PyQt6.QtCore import Qt, QTimer, QPointF, QPropertyAnimation
 from passageiro import Passageiro
 from plataforma import Plataforma
+import math 
 import random
 from time import sleep
 
@@ -22,61 +23,84 @@ class Autocarro(QGraphicsRectItem):
 
         #tela azul
 
-    def atualizar_seta(self):
-        """Atualiza a direção da seta com base na direção do autocarro"""
-        largura = self.rect().width()
-        altura = self.rect().height()
-
-        # Centro do autocarro
-        cx, cy = largura / 2, altura / 2
-
-        # Criar pontos para formar um triângulo (seta)
-        if self.direcao_saida == 'direita':   # Direita →
-            pontos = [QPointF(cx - 10, cy - 10), QPointF(cx + 10, cy), QPointF(cx - 10, cy + 10)]
-        elif self.direcao_saida == 'esquerda':   # Esquerda ←
-            pontos = [QPointF(cx + 10, cy - 10), QPointF(cx - 10, cy), QPointF(cx + 10, cy + 10)]
-        elif self.direcao_saida == 'baixo':  # Baixo ↓
-            pontos = [QPointF(cx - 10, cy - 10), QPointF(cx, cy + 10), QPointF(cx + 10, cy - 10)]
-        elif self.direcao_saida == 'cima':  # Cima ↑
-            pontos = [QPointF(cx - 10, cy + 10), QPointF(cx, cy - 10), QPointF(cx + 10, cy + 10)]
-        else:
-            return  # Sem direção
-
+    def atualizar_seta(self) -> None:
+        """Atualiza a direção da seta com base no ângulo atual do autocarro.
+    
+    Calcula os pontos do triângulo (seta) usando trigonometria para rotação precisa.
+    """
+    # Geometria base
+        rect = self.rect()
+        cx, cy = rect.center().x(), rect.center().y()
+        tamanho = min(rect.width(), rect.height()) * 0.3  # Tamanho proporcional
+    
+    # Ângulo em radianos (convertido de graus)
+        angulo_rad = math.radians(self.rotation())
+    
+    # Pontos do triângulo (seta)
+        pontos = [
+        # Ponta da seta (frente)
+            QPointF(
+                cx + tamanho * math.cos(angulo_rad),
+                cy + tamanho * math.sin(angulo_rad)
+            ),
+        # Base esquerda
+            QPointF(
+                cx + tamanho * 0.5 * math.cos(angulo_rad + math.pi * 0.8),
+                cy + tamanho * 0.5 * math.sin(angulo_rad + math.pi * 0.8)
+            ),
+        # Base direita
+            QPointF(
+                cx + tamanho * 0.5 * math.cos(angulo_rad - math.pi * 0.8),
+                cy + tamanho * 0.5 * math.sin(angulo_rad - math.pi * 0.8)
+            )
+        ]
+    
+    # Aplica ao polígono
         self.seta.setPolygon(QPolygonF(pontos))
-        self.seta.setBrush(QBrush(QColor("black")))  # Cor da seta
+        self.seta.setBrush(QBrush(QColor("black")))
 
-    def verificar_bloqueio(self):
+    def verificar_bloqueio(self) -> bool:      
+        # Ângulo atual em radianos (0-2π)
+        angulo = math.radians(self.rotation() % 360)
+    
+    # Vetor direção do autocarro atual
+        dir_x = math.cos(angulo)
+        dir_y = math.sin(angulo)
+    
+    # Tamanho do próprio autocarro para cálculo de distância segura
+        self_size = max(self.rect().width(), self.rect().height())
+    
+    # Limite angular para considerar "à frente" (60° de abertura total)
+        limite_angular = math.radians(30)  # ±30 graus
+        limite_distancia = self_size * 1.5  # Distância de segurança
+    
         for autocarro in self.cena.autocarro_parado:
             if self != autocarro["item"]:  # Ignora o próprio autocarro
                 other = autocarro["item"]
-                other_rect = other.rect()
-                self_rect = self.rect()
-
-            # Ângulos/direções diagonais
-                if self.direcao_saida == 'cima_direita':  # 45°
-                    if (self.x() + self_rect.width() >= other.x() and  # Colisão à direita
-                        self.y() + self_rect.height() >= other.y() and  # Colisão acima
-                        abs((self.y() - other.y()) / (self.x() - other.x() + 0.001)) <= 1.0):  # Inclinação <= 1 (45°)
-                        return True
-
-                elif self.direcao_saida == 'cima_esquerda':  # 135°
-                    if (self.x() <= other.x() + other_rect.width() and  # Colisão à esquerda
-                        self.y() + self_rect.height() >= other.y() and  # Colisão acima
-                        abs((self.y() - other.y()) / (self.x() - other.x() + 0.001)) >= 1.0):  # Inclinação >= 1 (135°)
-                        return True
-
-                elif self.direcao_saida == 'baixo_esquerda':  # 225°
-                    if (self.x() <= other.x() + other_rect.width() and  # Colisão à esquerda
-                        self.y() <= other.y() + other_rect.height() and  # Colisão abaixo
-                        abs((self.y() - other.y()) / (self.x() - other.x() + 0.001)) <= 1.0):  # Inclinação <= 1 (225°)
-                        return True
-
-                elif self.direcao_saida == 'baixo_direita':  # 315°
-                    if (self.x() + self_rect.width() >= other.x() and  # Colisão à direita
-                        self.y() <= other.y() + other_rect.height() and  # Colisão abaixo
-                        abs((self.y() - other.y()) / (self.x() - other.x() + 0.001)) >= 1.0):  # Inclinação >= 1 (315°)
-                        return True
-
+            
+            # Vetor relativo entre os autocarros
+                rel_x = other.x() - self.x()
+                rel_y = other.y() - self.y()
+            
+            # Distância entre centros
+                distancia = math.hypot(rel_x, rel_y)
+            
+            # Ignora autocarros muito distantes
+                # Ignora autocarros muito distantes
+                if distancia > limite_distancia * 2:
+                    continue
+                
+            # Ângulo relativo
+                if distancia > 0:
+                    cos_theta = (dir_x * rel_x + dir_y * rel_y) / distancia
+                    theta = math.acos(max(min(cos_theta, 1), -1))  # Clamped para [-1, 1]
+                else:
+                    return True  # Colisão exata
+            
+            # Verifica se está dentro do setor frontal
+                if abs(theta) <= limite_angular:
+                    return True
+                
         return False
 
 
@@ -109,7 +133,6 @@ class Autocarro(QGraphicsRectItem):
     
 
     def embarcar_passageiro(self):
-        self.verificar_derrota()
         self.verificar_vitoria()
         if self.capacidade > 0 and self.cena.passageiros:
             for passageiro in list(self.cena.passageiros):  # Evita erro ao remover da lista
@@ -129,6 +152,7 @@ class Autocarro(QGraphicsRectItem):
                         self.atualizar_posicoes()                        
                         self.verificar_vitoria()
                         self.cena.gerar_passageiro()
+                        
 
                                             # 🔴 Se ainda há capacidade, verifica o próximo passageiro
                         if autocarro_correto.capacidade > 0:
@@ -139,6 +163,7 @@ class Autocarro(QGraphicsRectItem):
                             
                             autocarro_correto.verificar_proximo_passageiro()
                         return  # Sai da função após embarcar um passageiro
+        self.verificar_derrota()
 
 
     def verificar_proximo_passageiro(self):
