@@ -7,6 +7,8 @@ from tabuleiro import Tabuleiro
 from plataforma import Plataforma
 import random
 
+#Criação da classe Cena que herda de QGraphicsView
+# Esta classe representa a cena do jogo, onde os autocarros, passageiros e plataformas são exibidos.
 class Cena(QGraphicsView):
     def __init__(self):
         super().__init__()
@@ -17,49 +19,58 @@ class Cena(QGraphicsView):
         tabuleiro = Tabuleiro("imagens/tabuleiro.png")
         tabuleiro.add_to_scene(self.scene)
 
+        #variável de controle
         self.max_por_cor = {
-            "yellow": 13,
-            "blue": 16,
-            "red": 32,
-            "green": 8  # Adicionando verde como cor adicional
+        "red": 0,
+        "blue": 0,
+        "yellow": 0,
+        "green": 0
+        }  
+
+        #variável de controle
+        self.passageiros_atuais = {
+            "red": 4,
+            "blue": 4,
+            "yellow": 3,
+            "green": 0,
         }
-        self.contagem_cores = {
-            "yellow": 0,
-            "blue": 0,
-            "red": 0,
-            "green": 0  # Inicializando contagem para verde
-        }
+        
+        # Lista para armazenar autocarros estacionados
         self.autocarros_estacionados = []
+
+        # Inicializa as plataformas, passageiros e autocarros
         self.inicializar_plataformas()
         self.inicializar_passageiros()
         self.inicializar_autocarros()
 
+    # Função para Inicializa as plataformas
     def inicializar_plataformas(self):    
-         # Criando plataformas na parte superior do tabuleiro
+         
         self.platforms = [
-            {"item": Plataforma(10, 250, 80, 20, "lightblue", 1), "ocupada": False},
-            {"item": Plataforma(150, 250, 80, 20, "lightblue", 2), "ocupada": False},
-            {"item": Plataforma(290, 250, 80, 20, "lightblue", 3), "ocupada": False},
-            {"item": Plataforma(430, 250, 80, 20, "lightblue", 4), "ocupada": False},
+            {"item": Plataforma(10, 290, 80, 20, "beige", 1), "ocupada": False},
+            {"item": Plataforma(150, 290, 80, 20, "beige", 2), "ocupada": False},
+            {"item": Plataforma(290, 290, 80, 20, "beige", 3), "ocupada": False},
+            {"item": Plataforma(430, 290, 80, 20, "beige", 4), "ocupada": False},
         ]
 
         for platform in self.platforms:
             self.scene.addItem(platform["item"])
-
+    
+    # Função para Inicializar os passageiros
     def inicializar_passageiros(self):
             cores_finais = (
-                ["yellow"] * 3 +  # 3 amarelos
-                ["red"] * 4 +     # 4 vermelhos
-                ["blue"] * 4     # 4 azuis  # 4 verdes
+                ["yellow"] * 3 +  
+                ["red"] * 4 +     
+                ["blue"] * 4     
             )
 
             random.shuffle(cores_finais)  # Embaralha a ordem
 
-            self.passageiros = []
+            self.passageiros = [] # Lista para armazenar passageiros criados
 
             for i, cor in enumerate(cores_finais):
                 posicao = i + 1
-                x = 10 + (posicao - 1) * 30  # Define posição horizontal na fila
+                x = 10 + (posicao - 1) * 30  
                 passageiro = {
                     "item": Passageiro(x, 170, cor),
                     "embarcado": False,
@@ -69,113 +80,138 @@ class Cena(QGraphicsView):
                 self.scene.addItem(passageiro["item"])
 
 
+
+    # Função para Inicializar os autocarros
     def inicializar_autocarros(self):
-    # Remove autocarros antigos da cena (se existirem)
+        # Remove autocarros antigos da cena (se existirem)
         if hasattr(self, "autocarro_parado"):
             for autocarro in self.autocarro_parado:
                 self.scene.removeItem(autocarro["item"])
 
-    # Define lista de autocarros com rotações personalizadas
-        self.autocarro_parado = [
-            {"item": Autocarro(50, 440, "red", self, 4, "cima_esquerda"), "rotacao": 315},
-            {"item": Autocarro(170, 440, "blue", self, 4, "cima_esquerda"), "rotacao": 315},
-            {"item": Autocarro(250, 440, "red", self, 4, "cima_direita"), "rotacao": 45},
-            {"item": Autocarro(350, 440, "blue", self, 4, "cima_direita"), "rotacao": 45},
-            {"item": Autocarro(450, 440, "yellow", self, 4, "cima_direita"), "rotacao": 45},
-            {"item": Autocarro(80, 525, "red", self, 4, "cima_esquerda"), "rotacao": 315},
-            {"item": Autocarro(180, 525, "green", self, 4, "cima_esquerda"), "rotacao": 315},
-            {"item": Autocarro(280, 525, "red", self, 4, "cima_direita"), "rotacao": 45},
-            {"item": Autocarro(380, 525, "blue", self, 4, "cima_direita"), "rotacao": 45},
-            {"item": Autocarro(480, 525, "yellow", self, 4, "cima_direita"), "rotacao": 45},
-            {"item": Autocarro(20, 600, "red", self, 4, "baixo_esquerda"), "rotacao": 225},
-            {"item": Autocarro(120, 600, "blue", self, 4, "baixo_esquerda"), "rotacao": 225},
-            {"item": Autocarro(220, 600, "red", self, 4, "baixo_direita"), "rotacao": 135},
-            {"item": Autocarro(320, 600, "yellow", self, 4, "baixo_direita"), "rotacao": 135},
-            {"item": Autocarro(420, 600, "red", self, 4, "baixo_direita"), "rotacao": 135},
-            {"item": Autocarro(40, 700, "blue", self, 4, "baixo_esquerda"), "rotacao": 225},
-            {"item": Autocarro(140, 700, "red", self, 4, "baixo_esquerda"), "rotacao": 225},
-            {"item": Autocarro(240, 700, "green", self, 4, "baixo_direita"), "rotacao": 135},
-            {"item": Autocarro(340, 700, "yellow", self, 4, "baixo_direita"), "rotacao": 135},
-            {"item": Autocarro(440, 700, "red", self, 4, "baixo_direita"), "rotacao": 135},
+        # Define o posicionamento dos autocarros em ângulos específicos
+        ROTACOES_POR_DIRECAO = {
+            "cima_direita": 45,
+            "baixo_direita": 135,
+            "baixo_esquerda": 225,
+            "cima_esquerda": 315
+        }
+
+        # Define as posições dos autocarros e suas cores na cena
+        posicoes = [
+            (50, 440, "cima_esquerda"), (170, 460, "cima_esquerda"),
+            (250, 440, "cima_direita"), (350, 440, "cima_direita"),
+            (450, 440, "cima_direita"), (80, 525, "cima_esquerda"),
+            (180, 525, "cima_esquerda"), (280, 525, "cima_direita"),
+            (380, 525, "cima_direita"), (480, 525, "cima_direita"),
+            (20, 600, "baixo_esquerda"), (120, 600, "baixo_esquerda"),
+            (220, 600, "baixo_direita"), (320, 600, "baixo_direita"),
+            (420, 600, "baixo_direita"), (40, 700, "baixo_esquerda"),
+            (140, 700, "baixo_esquerda"), (240, 700, "baixo_direita"),
+            (340, 700, "baixo_direita"), (440, 700, "baixo_direita"),
         ]
 
-        # Aplica rotação e adiciona à cena
-        for autocarro_dict in self.autocarro_parado:
-            autocarro = autocarro_dict["item"]
-            rotacao = autocarro_dict.get("rotacao", 0)
+        # Define as cores possíveis e suas capacidades
+        cores_possiveis = (
+            ["yellow"] * 4 + ["red"] * 9 + ["blue"] * 5 + ["green"] * 2
+        )
+        random.shuffle(cores_possiveis)
 
-            # Define ponto de rotação no centro do item
+        capacidades_por_cor = {
+            "yellow": [4, 12],
+            "red": [4, 8],
+            "blue": [4, 6],
+            "green": [4, 6],
+        }
+
+        # Inicializa a lista de autocarros e a capacidade total por cor
+        self.autocarro_parado = []
+        self.max_por_cor = {cor: 0 for cor in capacidades_por_cor}  # total por cor
+        self.contagem_cores = {cor: 0 for cor in capacidades_por_cor}  # passageiros que estão a ser gerados com base nas necessidades
+
+        # Cria os autocarros e adiciona à cena
+        for i, (x, y, direcao) in enumerate(posicoes):
+            cor = cores_possiveis[i % len(cores_possiveis)]
+            capacidade = random.choice(capacidades_por_cor[cor])
+            rotacao = ROTACOES_POR_DIRECAO.get(direcao, 0)
+
+            autocarro = Autocarro(x, y, cor, self, capacidade, direcao)
             autocarro.setTransformOriginPoint(autocarro.boundingRect().center())
             autocarro.setRotation(rotacao)
 
             self.scene.addItem(autocarro)
+            self.autocarro_parado.append({"item": autocarro})
+
+            
+            self.max_por_cor[cor] += capacidade
+
+        # Calcula o restante de vagas por cor
+        self.restante_por_cor = {
+            cor: self.max_por_cor.get(cor, 0) - self.passageiros_atuais.get(cor, 0)
+            for cor in self.max_por_cor
+        }
 
 
-
-
-      
-
-
+    # Função para gerar um novo passageiro se houver vagas por preencher
     def gerar_passageiro(self):
-    # Filtra cores que ainda podem ter passageiros gerados
+        
+        
         cores_disponiveis = [
-            cor for cor, qtd in self.contagem_cores.items() 
-            if qtd < self.max_por_cor[cor]  # Verifica se ainda pode gerar dessa cor
+            cor for cor in self.restante_por_cor
+            if self.contagem_cores.get(cor, 0) < self.restante_por_cor.get(cor, 0) # Verifica se ainda há vagas disponíveis para passageiros
         ]
 
         if not cores_disponiveis:
-            return None  # Não gera mais passageiros
+            return None  
 
-    # Escolhe aleatoriamente uma cor disponível
-        nova_cor = random.choice(cores_disponiveis)
+        
+        nova_cor = random.choice(cores_disponiveis) # Escolhe aleatoriamente uma cor disponível
 
-    # Cria o passageiro
+        
         novo_passageiro = {
-            "item": Passageiro(310, 170, nova_cor),
+            "item": Passageiro(310, 170, nova_cor), # Cria o passageiro
             "embarcado": False,
             "posicao": 11
         }
 
-    # Atualiza a contagem
-        self.contagem_cores[nova_cor] += 1
+        
+        self.contagem_cores[nova_cor] += 1 # Cria o passageiro
 
-    # Adiciona à lista e à cena
+        
         self.passageiros.append(novo_passageiro)
-        self.scene.addItem(novo_passageiro["item"])
+        self.scene.addItem(novo_passageiro["item"])      
+        return novo_passageiro
 
-
-        return   # Retorna o passageiro criado (opcional)
-
-
-       
+    
+    # Função para reiniciar a cena, limpando todos os itens e reinicializando o estado do jogo      
     def reiniciar(self):
-    # Limpa completamente a cena — remove todos os QGraphicsItems com segurança
+    
         self.scene.clear()
 
-    # Redefine contadores de passageiros por cor
+    
         self.max_por_cor = {
-        "yellow": 9,  # Suporte a até 3 amarelos × 3 passageiros
-        "blue": 12,   # 4 autocarros × 3
-        "red": 12     # 4 autocarros × 3
+        "yellow": 0,  
+        "blue": 0,                  # Redefine as nossa variável de controle
+        "red": 0,
+        "green": 0     
     }
 
         self.contagem_cores = {
-        "yellow": 0,
+        "yellow": 0,                   # Redefine as nossa variável de controle
         "blue": 0,
         "red": 0
     }
 
-    # Limpa quaisquer estruturas de controle adicionais
+    
         self.autocarros_estacionados = []
         self.autocarro_parado = []
-        self.passageiros = []
+        self.passageiros = []                   # Limpa quaisquer estruturas de controle adicionais
         self.platforms = []
 
-    # Recria todos os elementos do jogo
+    
         tabuleiro = Tabuleiro("imagens/tabuleiro.png")
         tabuleiro.add_to_scene(self.scene)
         self.inicializar_plataformas()
-        self.inicializar_autocarros()
+        self.inicializar_autocarros()                   # Recria todos os elementos do jogo
         self.inicializar_passageiros()
 
     
