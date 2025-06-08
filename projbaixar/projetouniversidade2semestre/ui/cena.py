@@ -15,8 +15,18 @@ class Cena(QGraphicsView):
 
         self.add_tabuleiro()
 
-        self.max_por_cor = 12
-        self.contagem_cores = {"yellow": 0, "blue": 0, "red": 0}
+        self.max_por_cor = {
+            "yellow": 9,
+            "blue": 12,
+            "red": 12
+        }
+        self.contagem_cores = {
+            "yellow": 0,
+            "blue": 0,
+            "red": 0
+        }
+
+    
 
         self.autocarros_estacionados = []
         
@@ -31,21 +41,25 @@ class Cena(QGraphicsView):
         for platform in self.platforms:
             self.scene.addItem(platform["item"])
 
-        self.passageiros = [
-            {"item": Passageiro(160, 500, "yellow"), "embarcado": False, "posicao": 1},
-            {"item": Passageiro(190, 500, "yellow"), "embarcado": False, "posicao": 2},
-            {"item": Passageiro(220, 500, "yellow"), "embarcado": False, "posicao": 3},
-            {"item": Passageiro(250, 500, "red"), "embarcado": False, "posicao": 4},
-            {"item": Passageiro(280, 500, "yellow"), "embarcado": False, "posicao": 5},
-            {"item": Passageiro(310, 500, "red"), "embarcado": False, "posicao": 6},
-            {"item": Passageiro(340, 500, "red"), "embarcado": False, "posicao": 7},
-            {"item": Passageiro(370, 500, "red"), "embarcado": False, "posicao": 8},
-            {"item": Passageiro(400, 500, "red"), "embarcado": False, "posicao": 9},
-            {"item": Passageiro(430, 500, "blue"), "embarcado": False, "posicao": 10},
-            {"item": Passageiro(460, 500, "yellow"), "embarcado": False, "posicao": 11},
-        ]
+        cores_finais = (
+            ["yellow"] * 3 +  # 3 amarelos
+            ["red"] * 4 +     # 4 vermelhos
+            ["blue"] * 4      # 4 azuis
+        )
 
-        for passageiro in self.passageiros:
+        random.shuffle(cores_finais)  # Embaralha a ordem
+
+        self.passageiros = []
+
+        for i, cor in enumerate(cores_finais):
+            posicao = i + 1
+            x = 160 + (posicao - 1) * 30  # Define posição horizontal na fila
+            passageiro = {
+                "item": Passageiro(x, 500, cor),
+                "embarcado": False,
+                "posicao": posicao
+            }
+            self.passageiros.append(passageiro)
             self.scene.addItem(passageiro["item"])
 
         self.autocarro_parado = [
@@ -58,7 +72,7 @@ class Cena(QGraphicsView):
             {"item": Autocarro(60, 100, "red", self, 4, "baixo")},  # Direção para baixo
             {"item": Autocarro(150, 100, "blue", self, 4, "baixo")},  # Direção para cima
             {"item": Autocarro(250, 100, "red", self, 4, "direita")},  # Direção direita  
-            {"item": Autocarro(350, 100, "blue", self, 4, "baixo")},  # Direção esquerda   
+            {"item": Autocarro(360, 100, "blue", self, 4, "baixo")},  # Direção esquerda   
             {"item": Autocarro(450, 100, "yellow", self, 4, "baixo")},  # Direção para baixo
         ]
 
@@ -72,29 +86,34 @@ class Cena(QGraphicsView):
 
 
     def gerar_passageiro(self):
-    # Filtra cores que ainda podem ter passageiro gerado (menos que max_por_cor)
-        cores_disponiveis = [cor for cor, qtd in self.contagem_cores.items() if qtd < self.max_por_cor]
+    # Filtra cores que ainda podem ter passageiros gerados
+        cores_disponiveis = [
+            cor for cor, qtd in self.contagem_cores.items() 
+            if qtd < self.max_por_cor[cor]  # Verifica se ainda pode gerar dessa cor
+        ]
 
         if not cores_disponiveis:
-            print("Limite máximo de passageiros atingido!")
-            return  # Não gera mais passageiros
+            return None  # Não gera mais passageiros
 
-    # Escolhe aleatoriamente uma cor dentre as disponíveis
+    # Escolhe aleatoriamente uma cor disponível
         nova_cor = random.choice(cores_disponiveis)
 
-    # Cria o passageiro dessa cor
+    # Cria o passageiro
         novo_passageiro = {
             "item": Passageiro(460, 500, nova_cor),
             "embarcado": False,
             "posicao": 11
         }
 
-    # Atualiza a contagem da cor gerada
+    # Atualiza a contagem
         self.contagem_cores[nova_cor] += 1
 
-    # Adiciona o passageiro à lista e à cena
+    # Adiciona à lista e à cena
         self.passageiros.append(novo_passageiro)
         self.scene.addItem(novo_passageiro["item"])
+
+
+        return   # Retorna o passageiro criado (opcional)
 
        
 

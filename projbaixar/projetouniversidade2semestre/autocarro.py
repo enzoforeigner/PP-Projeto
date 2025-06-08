@@ -47,30 +47,36 @@ class Autocarro(QGraphicsRectItem):
 
     def verificar_bloqueio(self):
         for autocarro in self.cena.autocarro_parado:
-            if self != autocarro["item"]:  # Não verificar o próprio autocarro
-            # Verifica se o autocarro está na mesma coluna e acima
-                if self.direcao_saida == 'cima':
-                    if (self.y() + self.rect().height() >= autocarro["item"].y() and
-                        self.x() == autocarro["item"].x()):
+            if self != autocarro["item"]:  # Ignora o próprio autocarro
+                other = autocarro["item"]
+                other_rect = other.rect()
+                self_rect = self.rect()
+
+            # Ângulos/direções diagonais
+                if self.direcao_saida == 'cima_direita':  # 45°
+                    if (self.x() + self_rect.width() >= other.x() and  # Colisão à direita
+                        self.y() + self_rect.height() >= other.y() and  # Colisão acima
+                        abs((self.y() - other.y()) / (self.x() - other.x() + 0.001)) <= 1.0):  # Inclinação <= 1 (45°)
                         return True
-            
-            # Verifica se o autocarro está na mesma coluna e abaixo
-                elif self.direcao_saida == 'baixo':
-                    if (self.y() <= autocarro["item"].y() + autocarro["item"].rect().height() and
-                        self.x() == autocarro["item"].x()):
+
+                elif self.direcao_saida == 'cima_esquerda':  # 135°
+                    if (self.x() <= other.x() + other_rect.width() and  # Colisão à esquerda
+                        self.y() + self_rect.height() >= other.y() and  # Colisão acima
+                        abs((self.y() - other.y()) / (self.x() - other.x() + 0.001)) >= 1.0):  # Inclinação >= 1 (135°)
                         return True
-            
-            # Verifica se o autocarro está na mesma linha e à direita
-                elif self.direcao_saida == 'esquerda': 
-                    if (self.x() + self.rect().width() >= autocarro["item"].x() and
-                        autocarro["item"].y() == self.y()):
+
+                elif self.direcao_saida == 'baixo_esquerda':  # 225°
+                    if (self.x() <= other.x() + other_rect.width() and  # Colisão à esquerda
+                        self.y() <= other.y() + other_rect.height() and  # Colisão abaixo
+                        abs((self.y() - other.y()) / (self.x() - other.x() + 0.001)) <= 1.0):  # Inclinação <= 1 (225°)
                         return True
-            
-            # Verifica se o autocarro está na mesma linha e à esquerda
-                elif self.direcao_saida == 'direita':
-                    if (self.x() <= autocarro["item"].x() + autocarro["item"].rect().width() and
-                        autocarro["item"].y() == self.y()):
+
+                elif self.direcao_saida == 'baixo_direita':  # 315°
+                    if (self.x() + self_rect.width() >= other.x() and  # Colisão à direita
+                        self.y() <= other.y() + other_rect.height() and  # Colisão abaixo
+                        abs((self.y() - other.y()) / (self.x() - other.x() + 0.001)) >= 1.0):  # Inclinação >= 1 (315°)
                         return True
+
         return False
 
 
@@ -104,6 +110,7 @@ class Autocarro(QGraphicsRectItem):
 
     def embarcar_passageiro(self):
         self.verificar_derrota()
+        self.verificar_vitoria()
         if self.capacidade > 0 and self.cena.passageiros:
             for passageiro in list(self.cena.passageiros):  # Evita erro ao remover da lista
                 if not passageiro["embarcado"]: 
@@ -169,6 +176,8 @@ class Autocarro(QGraphicsRectItem):
     # 🔴 Remove o autocarro da cena
         if self.scene() is not None:
             self.cena.scene.removeItem(self)
+        
+        self.verificar_vitoria()
 
     
 
@@ -227,9 +236,9 @@ class Autocarro(QGraphicsRectItem):
     def verificar_vitoria(self):
         """Exibe uma mensagem de vitória se todos os autocarros tiverem partido."""
     # Verifica se todos os autocarros já partiram
-        todos_autocarros_partiram = len(self.cena.autocarros_estacionados) == 0
+        todos_passageiros_partiram = len(self.cena.passageiros) == 0
 
-        if todos_autocarros_partiram:
+        if todos_passageiros_partiram:
             msg = QMessageBox()
             msg.setIcon(QMessageBox.Icon.Information)
             msg.setWindowTitle("Vitória!")
