@@ -1,6 +1,6 @@
   # autocarro.py
-from PyQt6.QtWidgets import QGraphicsRectItem, QGraphicsPolygonItem, QMessageBox
-from PyQt6.QtGui import QColor, QPolygonF, QBrush, QColor
+from PyQt6.QtWidgets import QGraphicsRectItem, QGraphicsPolygonItem, QMessageBox, QGraphicsPixmapItem
+from PyQt6.QtGui import QColor, QPolygonF, QBrush, QColor, QPixmap
 from PyQt6.QtCore import Qt, QTimer, QPointF, QPropertyAnimation
 from passageiro import Passageiro
 from plataforma import Plataforma
@@ -8,100 +8,111 @@ import math
 import random
 from time import sleep
 
-class Autocarro(QGraphicsRectItem):
+class Autocarro(QGraphicsPixmapItem):
     def __init__(self, x, y, cor, cena, capacidade, direcao_saida):
-        super().__init__(0, 0, 80, 40)  # Largura x Altura do autocarro
-        self.setPos(x, y)   # Posição inicial do autocarro
-        self.setBrush(QColor(cor))  # Define a cor do autocarro
+        super().__init__()  # Largura x Altura do autocarro
         self.cor = cor # Cor do autocarro
         self.cena = cena  # Referência à cena para saber onde mover
         self.capacidade = capacidade  # Capacidade máxima de passageiros 
         self.direcao_saida = direcao_saida  # Direção de saída
         self.plataforma = None  # Atributo para armazenar a plataforma ocupada
-        self.seta = QGraphicsPolygonItem(self)
-        self.atualizar_seta() # Atualiza a seta na inicialização
 
-        #tela azul
+        imagens_por_cor = {
+            "red": "imagens/carro_vermelho.png",
+            "yellow": "imagens/carro_amarelo.png",
+            "blue": "imagens/carro_azul.png",
+            "green": "imagens/carro_verde.png",
+        }
+        caminho_imagem = imagens_por_cor.get(cor, "autocarro_default.png")
 
-    def atualizar_seta(self) -> None:
-        """Atualiza a direção da seta com base no ângulo atual do autocarro.
-    
-    Calcula os pontos do triângulo (seta) usando trigonometria para rotação precisa.
-    """
-    # Geometria base
-        rect = self.rect()
+        pixmap = QPixmap(caminho_imagem)
+        if pixmap.isNull():
+            print(f"Erro: imagem do autocarro não encontrada em {caminho_imagem}")
+        else:
+            largura, altura = 100, 80  # ou outro tamanho que desejar
+            pixmap = pixmap.scaled(largura, altura, Qt.AspectRatioMode.KeepAspectRatio)
+            self.setPixmap(pixmap)
+
+        self.setPos(x, y)
+
+        # Carrega a imagem da seta e cria o item da seta como filho
+        pixmap_seta = QPixmap("imagens/seta.png")
+        if not pixmap_seta.isNull():
+            pixmap_seta = pixmap_seta.scaled(40, 40, Qt.AspectRatioMode.KeepAspectRatio)
+            self.seta = QGraphicsPixmapItem(pixmap_seta, self)
+            # Inicialmente, offset zero; vamos posicionar no atualizar_seta()
+            self.seta.setOffset(0, 0)
+            self.seta.setRotation(0)
+
+        self.atualizar_seta()
+
+    def atualizar_seta(self):
+        if not hasattr(self, "seta"):
+            return
+
+        # Pega o retângulo do autocarro
+        rect = self.boundingRect()
         cx, cy = rect.center().x(), rect.center().y()
-        tamanho = min(rect.width(), rect.height()) * 0.3  # Tamanho proporcional
-    
-    # Ângulo em radianos (convertido de graus)
-        angulo_rad = math.radians(self.rotation())
-    
-    # Pontos do triângulo (seta)
-        pontos = [
-        # Ponta da seta (frente)
-            QPointF(
-                cx + tamanho * math.cos(angulo_rad),
-                cy + tamanho * math.sin(angulo_rad)
-            ),
-        # Base esquerda
-            QPointF(
-                cx + tamanho * 0.5 * math.cos(angulo_rad + math.pi * 0.8),
-                cy + tamanho * 0.5 * math.sin(angulo_rad + math.pi * 0.8)
-            ),
-        # Base direita
-            QPointF(
-                cx + tamanho * 0.5 * math.cos(angulo_rad - math.pi * 0.8),
-                cy + tamanho * 0.5 * math.sin(angulo_rad - math.pi * 0.8)
-            )
-        ]
-    
-    # Aplica ao polígono
-        self.seta.setPolygon(QPolygonF(pontos))
-        self.seta.setBrush(QBrush(QColor("black")))
 
-    def verificar_bloqueio(self) -> bool:      
-        # Ângulo atual em radianos (0-2π)
-        angulo = math.radians(self.rotation() % 360)
-    
-    # Vetor direção do autocarro atual
-        dir_x = math.cos(angulo)
-        dir_y = math.sin(angulo)
-    
-    # Tamanho do próprio autocarro para cálculo de distância segura
-        self_size = max(self.rect().width(), self.rect().height())
-    
-    # Limite angular para considerar "à frente" (60° de abertura total)
-        limite_angular = math.radians(30)  # ±30 graus
-        limite_distancia = self_size * 1.5  # Distância de segurança
-    
-        for autocarro in self.cena.autocarro_parado:
-            if self != autocarro["item"]:  # Ignora o próprio autocarro
-                other = autocarro["item"]
-            
-            # Vetor relativo entre os autocarros
-                rel_x = other.x() - self.x()
-                rel_y = other.y() - self.y()
-            
-            # Distância entre centros
-                distancia = math.hypot(rel_x, rel_y)
-            
-            # Ignora autocarros muito distantes
-                # Ignora autocarros muito distantes
-                if distancia > limite_distancia * 2:
-                    continue
-                
-            # Ângulo relativo
-                if distancia > 0:
-                    cos_theta = (dir_x * rel_x + dir_y * rel_y) / distancia
-                    theta = math.acos(max(min(cos_theta, 1), -1))  # Clamped para [-1, 1]
-                else:
-                    return True  # Colisão exata
-            
-            # Verifica se está dentro do setor frontal
-                if abs(theta) <= limite_angular:
-                    return True
-                
-        return False
+        # Posiciona a seta no centro do autocarro, corrigindo pelo offset da imagem da seta
+        pixmap_rect = self.seta.boundingRect()
+        offset_x = pixmap_rect.width() / 2
+        offset_y = pixmap_rect.height() / 2
+
+        self.seta.setPos(cx - offset_x, cy - offset_y)
+
+        # Rotaciona a seta conforme a rotação do autocarro
+        self.seta.setRotation(self.rotation())
+
+        # Garante que a seta fique no topo visualmente
+        self.seta.setZValue(self.zValue() + 1)
+
+
+
+    def verificar_bloqueio(self) -> bool:
+        # Direções possíveis (vetores normalizados)
+        vetores_direcao = {
+            "cima_direita": (math.sqrt(0.5), -math.sqrt(0.5)),
+            "cima_esquerda": (-math.sqrt(0.5), -math.sqrt(0.5)),
+            "baixo_direita": (math.sqrt(0.5), math.sqrt(0.5)),
+            "baixo_esquerda": (-math.sqrt(0.5), math.sqrt(0.5)),
+        }
+
+        # Pega vetor de direção baseado em self.direcao_saida
+        dir_x, dir_y = vetores_direcao.get(self.direcao_saida, (0, 0))
+        
+        if dir_x == 0 and dir_y == 0:
+            return False  # Direção inválida, não bloqueia
+
+        # Tamanho para determinar distância segura
+        self_size = max(self.boundingRect().width(), self.boundingRect().height())
+        limite_distancia = self_size * 1.5
+        limite_angular = math.radians(30)  # 60° de abertura frontal
+
+        for autocarro_dict in self.cena.autocarro_parado:
+            outro = autocarro_dict["item"]
+            if outro == self:
+                continue
+
+            # Vetor entre este e o outro autocarro
+            rel_x = outro.x() - self.x()
+            rel_y = outro.y() - self.y()
+            distancia = math.hypot(rel_x, rel_y)
+
+            if distancia > limite_distancia * 2:
+                continue
+
+            if distancia > 0:
+                cos_theta = (dir_x * rel_x + dir_y * rel_y) / distancia
+                theta = math.acos(max(min(cos_theta, 1), -1))
+            else:
+                return True  # Mesmo ponto → bloqueado
+
+            if abs(theta) <= limite_angular:
+                return True  # Outro autocarro está à frente
+
+        return False  # Nenhum bloqueio à frente
+
 
 
      
