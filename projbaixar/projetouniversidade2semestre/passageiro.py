@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import QGraphicsEllipseItem, QGraphicsPixmapItem
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtCore import Qt
 
-#Class Passageiro representa um passageiro que pode embarcar em um autocarro.
+#Classe Passageiro representa um passageiro que pode embarcar em um autocarro.
 class Passageiro(QGraphicsPixmapItem):
     def __init__(self, x, y, cor, largura=34, altura=34, autocarro=None):
         super().__init__()
