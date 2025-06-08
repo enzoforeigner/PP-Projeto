@@ -1,21 +1,21 @@
-# passageiro.py
 from PyQt6.QtWidgets import QGraphicsEllipseItem, QGraphicsPixmapItem
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtCore import Qt
 
+#Classe Passageiro representa um passageiro que pode embarcar em um autocarro.
 class Passageiro(QGraphicsPixmapItem):
     def __init__(self, x, y, cor, largura=34, altura=34, autocarro=None):
         super().__init__()
         
-        # Mapeia cor para imagem
+        
         imagens_por_cor = {
-            "yellow": "imagens/boneco_amarelo.png",
+            "yellow": "imagens/boneco_amarelo.png",     # Mapeia cor para imagem
             "red": "imagens/boneco_vermelho.png",
             "blue": "imagens/boneco_azul.png",
             "green": "imagens/boneco_verde.png",
         }
         
-        caminho_imagem = imagens_por_cor.get(cor)  # fallback caso cor desconhecida
+        caminho_imagem = imagens_por_cor.get(cor)  
         pixmap = QPixmap(caminho_imagem)
         
         if pixmap.isNull():
@@ -28,8 +28,4 @@ class Passageiro(QGraphicsPixmapItem):
         self.autocarro = autocarro
         self.cor = cor
 
-    def tentar_embarcar(self):
-        if self.autocarro and self.autocarro.embarcar_passageiro(self):
-            print("Passageiro embarcou com sucesso!")
-        else:
-            print("Autocarro lotado ou não disponível.")
+  

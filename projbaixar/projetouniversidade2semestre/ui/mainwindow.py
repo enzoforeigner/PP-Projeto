@@ -2,23 +2,24 @@
 from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QPushButton
 from ui.cena import Cena
 
+# nossa classe principal MainWindow 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Park Out")
 
-        # Configurar a interface
-        self.init_ui()
+        
+        self.init_ui() # Configurar a interface
 
     def init_ui(self):
         layout = QVBoxLayout()
 
-        # Adiciona o cenário
-        self.cena = Cena()
+        
+        self.cena = Cena()          # Adiciona o cenário
         layout.addWidget(self.cena)
 
         botao_reiniciar = QPushButton("🔁 Reiniciar Jogo")
-        botao_reiniciar.clicked.connect(self.cena.reiniciar)  # Conectando à função que você criará na Cena
+        botao_reiniciar.clicked.connect(self.cena.reiniciar)  # Conecta com a minha função de reiniciar
         layout.addWidget(botao_reiniciar)
 
         container = QWidget()

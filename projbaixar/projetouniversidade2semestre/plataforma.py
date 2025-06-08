@@ -1,8 +1,9 @@
-# plataforma.py
+
 from PyQt6.QtWidgets import QGraphicsRectItem
 from PyQt6.QtGui import QColor
 from PyQt6.QtCore import Qt, QTimer, QPointF, QPropertyAnimation
 
+# Class Plataforma que representa uma plataforma onde os autocarros param
 class Plataforma(QGraphicsRectItem):
     def __init__(self, x, y, largura, altura, cor, posicao):
         super().__init__(0, 0, largura, altura)  # Define o tamanho da plataforma
@@ -10,6 +11,7 @@ class Plataforma(QGraphicsRectItem):
         self.setBrush(QColor(cor))  # Define a cor da plataforma
         self.posicao = posicao # Posição da plataforma na cena
 
+    #função que retorna a posição da plataforma para poder animar o autocarro
     def animar_autocarro(self, autocarro):
         destino = self.pos()
         timer = QTimer()
