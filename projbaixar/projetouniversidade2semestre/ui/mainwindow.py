@@ -1,4 +1,3 @@
-# ui/main_window.py
 from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QPushButton
 from ui.cena import Cena
 

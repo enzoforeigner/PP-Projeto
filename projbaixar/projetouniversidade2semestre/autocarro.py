@@ -47,7 +47,7 @@ class Autocarro(QGraphicsPixmapItem):
         elif capacidade == 12:
             largura, altura = 100, 85
         else:
-            largura, altura = 100, 80  # padrão
+            largura, altura = 100, 80  
 
         pixmap = pixmap.scaled(largura, altura, Qt.AspectRatioMode.KeepAspectRatio)
         self.setPixmap(pixmap)
@@ -245,7 +245,7 @@ class Autocarro(QGraphicsPixmapItem):
     def atualizar_posicoes(self):
         for passageiro in self.cena.passageiros:
             if not passageiro["embarcado"]:  
-                passageiro["posicao"] -= 1  # Atualiza posição´
+                passageiro["posicao"] -= 1  # Atualiza posição
                 if passageiro["posicao"] >= 1:
                     pos_atual = passageiro["item"].pos()
                     novo_x = pos_atual.x() - 30  # ou +30 se quiser mover para a direita
